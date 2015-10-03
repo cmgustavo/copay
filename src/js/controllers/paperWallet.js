@@ -51,34 +51,26 @@ angular.module('copayApp.controllers').controller('paperWalletController',
         fc.decryptBIP38PrivateKey(privateKey, passphrase, null, function(err, privateKey) {
           if (err) return cb(err);
 
-          fc.getBalanceFromPrivateKey(privateKey, function(err, utxos) {
-            if (err) return cb(err);
-
-            addressService.getAddress(fc.credentials.walletId, true, function(err, destinationAddress) {
-              if (err) return cb(err);
-
-              fc.buildTxFromPrivateKey(privateKey, destinationAddress, null, function(err, tx) {
-                if (err) return cb(err);
-                return cb(null, tx.serialize(), utxos);
-              });
-            });
-          });
+          self.getRawTxFromPrivateKey(privateKey);
         });
-      } else {
-        fc.getBalanceFromPrivateKey(privateKey, function(err, utxos) {
-          if (err) return cb(err)
-
-          addressService.getAddress(fc.credentials.walletId, true, function(err, destinationAddress) {
-            if (err) return cb(err);
-
-            fc.buildTxFromPrivateKey(privateKey, destinationAddress, null, function(err, tx) {
-              if (err) return cb(err);
-              return cb(null, tx.serialize(), utxos);
-            });
-          });
-        });
-      }
+      } else
+        self.getRawTxFromPrivateKey(privateKey);
     };
+
+    self.getRawTxFromPrivateKey = function(privateKey, cb) {
+      fc.getBalanceFromPrivateKey(privateKey, function(err, utxos) {
+        if (err) return cb(err)
+
+        addressService.getAddress(fc.credentials.walletId, true, function(err, destinationAddress) {
+          if (err) return cb(err);
+
+          fc.buildTxFromPrivateKey(privateKey, destinationAddress, null, function(err, tx) {
+            if (err) return cb(err);
+            return cb(null, tx.serialize(), utxos);
+          });
+        });
+      });
+    }
 
     self.transaction = function() {
       self.error = null;
