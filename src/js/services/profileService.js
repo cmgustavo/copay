@@ -75,9 +75,14 @@ angular.module('copayApp.services')
 
       var client = bwcService.getClient(JSON.stringify(credentials));
       root.walletClients[credentials.walletId] = client;
+
+      if (client.incorrectDerivation) {
+        storageService.clearLastAddress(credentials.walletId,function() {});
+      }
+
       client.removeAllListeners();
       client.on('report', function(n) {
-         $log.info('BWC Report:'+ n);
+        $log.info('BWC Report:' + n);
       });
 
       client.on('notification', function(n) {
@@ -143,9 +148,8 @@ angular.module('copayApp.services')
             root.isDisclaimerAccepted(function(val) {
               if (!val) {
                 return cb(new Error('NONAGREEDDISCLAIMER: Non agreed disclaimer'));
-              } else {
-                return cb();
-              }
+              } 
+              return cb();
             });
           });
         });
@@ -301,7 +305,8 @@ angular.module('copayApp.services')
         if (err) return cb(err);
 
         walletClient.createWallet(opts.name, opts.myName || 'me', opts.m, opts.n, {
-          network: opts.networkName
+          network: opts.networkName,
+          walletPrivKey: opts.walletPrivKey,
         }, function(err, secret) {
           if (err) return bwsError.cb(err, gettext('Error creating wallet'), cb);
 
@@ -319,8 +324,8 @@ angular.module('copayApp.services')
 
         // check if exist
         if (lodash.find(root.profile.credentials, {
-            'walletId': walletData.walletId
-          })) {
+          'walletId': walletData.walletId
+        })) {
           return cb(gettext('Cannot join the same wallet more that once'));
         }
       } catch (ex) {
@@ -566,6 +571,7 @@ angular.module('copayApp.services')
           if (err) return cb(err);
 
           root.bindProfile(p, function(err) {
+            // ignore NONAGREEDDISCLAIMER
             storageService.storeNewProfile(p, function(err) {
               return cb(err);
             });
@@ -583,7 +589,6 @@ angular.module('copayApp.services')
 
     root.isDisclaimerAccepted = function(cb) {
       var disclaimerAccepted = root.profile && root.profile.disclaimerAccepted;
-
       if (disclaimerAccepted)
         return cb(true);
 
