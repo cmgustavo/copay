@@ -18,10 +18,12 @@
   </ion-list>
   <div *ngIf="contactsList">
     <ion-list>
-      <ion-label>Contacts</ion-label>
-      <ion-item *ngFor="let item of contactsList" (click)="goToAmount(item)">
-        {{item.name}}
-      </ion-item>
+      <button ion-item *ngFor="let item of contactsList" (click)="goToAmount(item)">
+        <ion-icon item-start>
+          <img src="assets/img/contact-placeholder.svg" class="icon-contact">
+        </ion-icon>
+        <h2>{{item.name}}</h2>
+      </button>
     </ion-list>
   </div>
   <div *ngIf="walletList">
