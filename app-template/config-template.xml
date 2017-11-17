@@ -74,7 +74,7 @@
     <!-- <plugin name="phonegap-plugin-barcodescanner" spec="https://github.com/phonegap/phonegap-plugin-barcodescanner.git" /> -->
 
     <!-- Supported Platforms -->
-    <engine name="ios" spec="4.5.3" />
+    <engine name="ios" spec="4.5.4" />
     <engine name="android" spec="6.4.0" />
     <engine name="windows" spec="5.0.0" />
 
