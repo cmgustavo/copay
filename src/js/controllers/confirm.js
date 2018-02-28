@@ -312,7 +312,7 @@ angular.module('copayApp.controllers').controller('confirmController', function(
         $log.info('Using Merchant Fee:' + tx.feeRate + ' vs. Urgent level:' + feeRate);
         if (tx.feeRate > feeRate) {
           ongoingProcess.set('calculatingFee', false);
-          setNoWallet(gettextCatalog.getString('Merchant fee to high. Payment rejected'), true);
+          setNoWallet(gettextCatalog.getString('Merchant fee too high. Payment rejected'), true);
           return cb('fee_too_high');
         }
 
