@@ -53,6 +53,7 @@ const Keys = {
   },
   HIDE_GIFT_CARD_DISCOUNT_ITEM: 'hideGiftCardDiscountItem',
   HIDE_BALANCE: walletId => 'hideBalance-' + walletId,
+  KEYS: 'keys',
   LAST_ADDRESS: walletId => 'lastAddress-' + walletId,
   LAST_CURRENCY_USED: 'lastCurrencyUsed',
   ONBOARDING_COMPLETED: 'onboardingCompleted',
@@ -105,6 +106,14 @@ export class PersistenceProvider {
         resolve(profile);
       });
     });
+  }
+
+  setKeys(keys: any) {
+    return this.storage.set(Keys.KEYS, keys);
+  }
+
+  getKeys() {
+    return this.storage.get(Keys.KEYS);
   }
 
   setFeedbackInfo(feedbackValues: FeedbackValues) {
