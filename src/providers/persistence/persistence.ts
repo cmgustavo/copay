@@ -576,6 +576,7 @@ export class PersistenceProvider {
   }
 
   setPriceChartFlag(value: string) {
+    this.logger.debug('Price chart: ', value);
     return this.storage.set('priceChart', value);
   }
 
