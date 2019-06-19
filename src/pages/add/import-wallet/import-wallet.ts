@@ -220,7 +220,6 @@ export class ImportWalletPage {
       this.profileProvider.setBackupFlag(wallet.credentials.walletId);
       this.pushNotificationsProvider.updateSubscription(wallet);
     });
-    // using setRoot(TabsPage) as workaround when coming from scanner
     this.app
       .getRootNavs()[0]
       .setRoot(TabsPage)
