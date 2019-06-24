@@ -9,6 +9,7 @@ import { LabelTip } from './label-tip/label-tip';
 import { PriceCard } from './price-card/price-card';
 import { PriceChart } from './price-card/price-chart/price-chart';
 import { SearchBarComponent } from './search-bar/search-bar';
+import { WalletGroupSelectorComponent } from './wallet-group-selector/wallet-group-selector';
 
 export const COMPONENTS = [
   ActionCardComponent,
@@ -21,5 +22,6 @@ export const COMPONENTS = [
   ClipboardCardPage,
   SearchBarComponent,
   PriceCard,
-  PriceChart
+  PriceChart,
+  WalletGroupSelectorComponent
 ];
