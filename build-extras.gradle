@@ -3,3 +3,9 @@ configurations.all {
         force 'com.android.support:support-v4:27.1.0'
     }
 }
+
+android {
+   defaultConfig { multiDexEnabled true }
+   lintOptions { disable 'MissingTranslation', 'ExtraTranslation' }
+   compileSdkVersion 28
+}
