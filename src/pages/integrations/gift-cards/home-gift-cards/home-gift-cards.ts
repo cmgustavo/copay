@@ -5,8 +5,8 @@ import {
   transition,
   trigger
 } from '@angular/animations';
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { Content, ItemSliding, NavController } from 'ionic-angular';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { ItemSliding, NavController } from 'ionic-angular';
 import { timer } from 'rxjs/observable/timer';
 import { debounceTime } from 'rxjs/operators';
 import {
@@ -60,9 +60,6 @@ export class HomeGiftCards implements OnInit {
   public hideDiscount: boolean = false;
   public disableArchiveAnimation: boolean = true; // Removes flicker on iOS when returning to home tab
 
-  @Input('scrollArea')
-  scrollArea: Content;
-
   @ViewChild(ItemSliding)
   slidingItem: ItemSliding;
 
@@ -92,19 +89,9 @@ export class HomeGiftCards implements OnInit {
     this.navCtrl.push(CardCatalogPage);
   }
 
-  public async buyCard(cardName: string, discountContext?: string) {
+  public async buyCard(cardName: string) {
     const cardConfig = await this.giftCardProvider.getCardConfig(cardName);
     this.navCtrl.push(BuyCardPage, { cardConfig });
-    if (this.discountedCard && this.discountedCard.name === cardName) {
-      this.logDiscountClick(discountContext);
-    }
-  }
-
-  public logDiscountClick(context: string) {
-    this.giftCardProvider.logEvent(
-      'clickedGiftCardDiscount',
-      this.giftCardProvider.getDiscountEventParams(this.discountedCard, context)
-    );
   }
 
   public onGiftCardAction(event, purchasedCards: GiftCard[]) {
