@@ -1,8 +1,8 @@
 <ion-header>
   <ion-navbar class="home-header" [ngClass]="{blur: isBlur}">
-    <ion-buttons left class="add-button" *ngIf="selectedWalletGroup && !selectedWalletGroup.isDeletedSeed">
-      <button ion-button clear (click)="goToAddView()" *ngIf="wallets && wallets[0]" [ngClass]="{copay: appProvider.info.name === 'copay'}">
-        <img src="assets/img/plus.svg" />
+    <ion-buttons *ngIf="txpsN > 0" class="notifications-button" left>
+      <button ion-button clear icon-only color="grey" (click)="openProposalsPage()">
+        <ion-badge class="notifications-badge">{{ txpsN }}</ion-badge>
       </button>
     </ion-buttons>
     <ion-title>
@@ -13,9 +13,6 @@
       </button>
     </ion-title>
     <ion-buttons right class="settings-button">
-      <button ion-button clear icon-only color="grey" *ngIf="txpsN > 0" (click)="openProposalsPage()">
-        <ion-badge class="notifications-badge">{{ txpsN }}</ion-badge>
-      </button>
       <button class="modal-close-button" (click)="settings()" ion-button>
         <img src="assets/img/settings.svg" />
       </button>
@@ -116,8 +113,8 @@
 
     <div class="wallets-container" *ngIf="wallets && wallets.length">
       <div class="section-header">
-        <span translate>
-          Wallets
+        <span *ngIf="appProvider.info.name != 'copay' && wallets.length > 1" translate>
+          Accounts
         </span>
         <span *ngIf="!showReorder && wallets.length > 1" (click)="reorder()" class="reorder-button" tappable>
           <img src="assets/img/sort.svg">
