@@ -12,6 +12,7 @@ import { ProfileProvider } from '../../../providers/profile/profile';
 import { WalletProvider } from '../../../providers/wallet/wallet';
 
 // pages
+import { AddPage } from '../../add/add';
 import { BackupKeyPage } from '../../backup/backup-key/backup-key';
 import { WalletExportPage } from '../wallet-settings/wallet-settings-advanced/wallet-export/wallet-export';
 import { WalletGroupDeletePage } from './wallet-group-delete/wallet-group-delete';
@@ -182,5 +183,9 @@ export class WalletGroupSettingsPage {
 
   openWalletSettings(id) {
     this.navCtrl.push(WalletSettingsPage, { walletId: id });
+  }
+
+  goToAddView(): void {
+    this.navCtrl.push(AddPage, { addingNewAccount: true });
   }
 }

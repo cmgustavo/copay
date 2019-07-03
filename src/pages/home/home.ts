@@ -13,7 +13,6 @@ import { Observable, Subscription } from 'rxjs';
 
 // Pages
 import { AddWalletPage } from '../add-wallet/add-wallet';
-import { AddPage } from '../add/add';
 import { BitPayCardPage } from '../integrations/bitpay-card/bitpay-card';
 import { BitPayCardIntroPage } from '../integrations/bitpay-card/bitpay-card-intro/bitpay-card-intro';
 import { CoinbasePage } from '../integrations/coinbase/coinbase';
@@ -798,10 +797,6 @@ export class HomePage {
     const url =
       "https://github.com/bitpay/copay/wiki/Why-can't-I-use-BitPay's-services-in-my-country%3F";
     this.externalLinkProvider.open(url);
-  }
-
-  public goToAddView(): void {
-    this.navCtrl.push(AddPage, { addingNewAccount: true });
   }
 
   public goToWalletDetails(wallet, params): void {
