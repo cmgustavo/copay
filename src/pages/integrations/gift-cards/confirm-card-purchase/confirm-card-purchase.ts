@@ -417,7 +417,7 @@ export class ConfirmCardPurchasePage extends ConfirmPage {
     const dataSrc = {
       amount: parsedAmount.amount,
       currency: parsedAmount.currency,
-      discounts: discount && discount.code ? [discount.code] : [],
+      discounts: discount ? [discount.code] : [],
       uuid: wallet.id,
       email,
       buyerSelectedTransactionCurrency: COIN,
