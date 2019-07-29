@@ -1,7 +1,15 @@
 import { Component } from '@angular/core';
+import { NavController } from 'ionic-angular';
+import * as _ from 'lodash';
 
 // providers
-import { AppProvider, ConfigProvider, Logger } from '../../../providers';
+import {
+  AppProvider,
+  ConfigProvider,
+  Logger,
+  ProfileProvider
+} from '../../../providers';
+import { WalletRecoverPage } from './wallet-recover-page/wallet-recover-page';
 
 @Component({
   selector: 'page-advanced',
@@ -9,14 +17,28 @@ import { AppProvider, ConfigProvider, Logger } from '../../../providers';
 })
 export class AdvancedPage {
   public spendUnconfirmed: boolean;
+  public allowMultiplePrimaryWallets: boolean;
+  public nrKeys: number;
   public isCopay: boolean;
+  public oldProfileAvailable: boolean;
 
   constructor(
     private configProvider: ConfigProvider,
+    private profileProvider: ProfileProvider,
+    private navCtrl: NavController,
     private logger: Logger,
     private appProvider: AppProvider
   ) {
     this.isCopay = this.appProvider.info.name === 'copay';
+    this.profileProvider
+      .getProfileLegacy()
+      .then(oldProfile => {
+        this.oldProfileAvailable = oldProfile ? true : false;
+      })
+      .catch(err => {
+        this.oldProfileAvailable = false;
+        this.logger.info('Error retrieving old profile, ', err);
+      });
   }
 
   ionViewDidLoad() {
@@ -27,6 +49,14 @@ export class AdvancedPage {
     let config = this.configProvider.get();
 
     this.spendUnconfirmed = config.wallet.spendUnconfirmed;
+
+    const opts = {
+      showHidden: true
+    };
+    const wallets = this.profileProvider.getWallets(opts);
+    this.nrKeys = _.values(_.groupBy(wallets, 'keyId')).length;
+
+    this.allowMultiplePrimaryWallets = config.allowMultiplePrimaryWallets;
   }
 
   public spendUnconfirmedChange(): void {
@@ -36,5 +66,16 @@ export class AdvancedPage {
       }
     };
     this.configProvider.set(opts);
+  }
+
+  public allowMultiplePrimaryWalletsChange(): void {
+    let opts = {
+      allowMultiplePrimaryWallets: this.allowMultiplePrimaryWallets
+    };
+    this.configProvider.set(opts);
+  }
+
+  public openWalletRecoveryPage() {
+    this.navCtrl.push(WalletRecoverPage);
   }
 }

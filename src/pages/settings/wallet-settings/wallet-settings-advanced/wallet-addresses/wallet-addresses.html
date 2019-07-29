@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-navbar [navbar-bg]="wallet.color">
+  <ion-navbar>
     <ion-title>{{'Wallet Addresses' | translate}}</ion-title>
   </ion-navbar>
 </ion-header>
@@ -32,7 +32,7 @@
     <span translate>Loading addresses...</span>
   </div>
 
-  <ion-list *ngIf="!loading" class="settings-list">
+  <ion-list *ngIf="!loading" class="settings-list bp-list">
     <div *ngIf="allUtxosNb">
       <ion-item-divider>{{'Wallet Inputs' | translate}}</ion-item-divider>
 

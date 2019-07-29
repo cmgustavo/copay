@@ -17,6 +17,7 @@ import { ProfileProvider } from '../../providers/profile/profile';
 import { TouchIdProvider } from '../../providers/touchid/touchid';
 
 // pages
+import { AddPage } from '../add/add';
 import { BitPayCardIntroPage } from '../integrations/bitpay-card/bitpay-card-intro/bitpay-card-intro';
 import { BitPaySettingsPage } from '../integrations/bitpay-card/bitpay-settings/bitpay-settings';
 import { CoinbaseSettingsPage } from '../integrations/coinbase/coinbase-settings/coinbase-settings';
@@ -32,6 +33,7 @@ import { LanguagePage } from './language/language';
 import { LockPage } from './lock/lock';
 import { NotificationsPage } from './notifications/notifications';
 import { SharePage } from './share/share';
+import { WalletGroupSettingsPage } from './wallet-group-settings/wallet-group-settings';
 import { WalletSettingsPage } from './wallet-settings/wallet-settings';
 
 @Component({
@@ -42,8 +44,6 @@ export class SettingsPage {
   public appName: string;
   public currentLanguageName: string;
   public languages;
-  public walletsBtc;
-  public walletsBch;
   public config;
   public selectedAlternative;
   public isCordova: boolean;
@@ -55,6 +55,7 @@ export class SettingsPage {
   public touchIdAvailable: boolean;
   public touchIdEnabled: boolean;
   public touchIdPrevValue: boolean;
+  public walletsGroups: any[];
 
   constructor(
     private navCtrl: NavController,
@@ -72,8 +73,6 @@ export class SettingsPage {
     private touchid: TouchIdProvider
   ) {
     this.appName = this.app.info.nameCase;
-    this.walletsBch = [];
-    this.walletsBtc = [];
     this.isCordova = this.platformProvider.isCordova;
   }
 
@@ -85,12 +84,13 @@ export class SettingsPage {
     this.currentLanguageName = this.language.getName(
       this.language.getCurrent()
     );
-    this.walletsBtc = this.profileProvider.getWallets({
-      coin: 'btc'
-    });
-    this.walletsBch = this.profileProvider.getWallets({
-      coin: 'bch'
-    });
+
+    const opts = {
+      showHidden: true
+    };
+    const wallets = this.profileProvider.getWallets(opts);
+    this.walletsGroups = _.values(_.groupBy(wallets, 'keyId'));
+
     this.config = this.configProvider.get();
     this.selectedAlternative = {
       name: this.config.wallet.settings.alternativeName,
@@ -255,5 +255,13 @@ export class SettingsPage {
       okText,
       cancelText
     );
+  }
+
+  public openWalletGroupSettings(keyId: string): void {
+    this.navCtrl.push(WalletGroupSettingsPage, { keyId });
+  }
+
+  public goToAddView(): void {
+    this.navCtrl.push(AddPage);
   }
 }

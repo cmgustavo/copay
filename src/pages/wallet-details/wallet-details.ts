@@ -27,7 +27,6 @@ import { BackupKeyPage } from '../../pages/backup/backup-key/backup-key';
 import { ProposalsPage } from '../../pages/home/proposals/proposals';
 import { WalletAddressesPage } from '../../pages/settings/wallet-settings/wallet-settings-advanced/wallet-addresses/wallet-addresses';
 import { TxDetailsPage } from '../../pages/tx-details/tx-details';
-import { WalletSettingsPage } from '../settings/wallet-settings/wallet-settings';
 import { WalletTabsChild } from '../wallet-tabs/wallet-tabs-child';
 import { WalletTabsProvider } from '../wallet-tabs/wallet-tabs.provider';
 import { SearchTxModalPage } from './search-tx-modal/search-tx-modal';
@@ -154,10 +153,6 @@ export class WalletDetailsPage extends WalletTabsChild {
       !this.updateStatusError &&
       !this.updateTxHistoryError
     );
-  }
-
-  goToPreferences() {
-    this.navCtrl.push(WalletSettingsPage, { walletId: this.wallet.id });
   }
 
   private clearHistoryCache() {
@@ -379,7 +374,7 @@ export class WalletDetailsPage extends WalletTabsChild {
 
   public openBackup() {
     this.navCtrl.push(BackupKeyPage, {
-      walletId: this.wallet.credentials.walletId
+      keyId: this.wallet.credentials.keyId
     });
   }
 
@@ -428,8 +423,7 @@ export class WalletDetailsPage extends WalletTabsChild {
 
   public openBalanceDetails(): void {
     this.navCtrl.push(WalletBalancePage, {
-      status: this.wallet.cachedStatus,
-      color: this.wallet.color
+      status: this.wallet.cachedStatus
     });
   }
 

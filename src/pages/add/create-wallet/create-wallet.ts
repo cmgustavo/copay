@@ -45,6 +45,7 @@ export class CreateWalletPage implements OnInit {
   private tc: number;
   private derivationPathByDefault: string;
   private derivationPathForTestnet: string;
+  private keyId: string;
 
   public copayers: number[];
   public signatures: number[];
@@ -78,12 +79,17 @@ export class CreateWalletPage implements OnInit {
     this.cancelText = this.translate.instant('Cancel');
     this.isShared = this.navParams.get('isShared');
     this.coin = this.navParams.get('coin');
+    this.keyId = this.navParams.get('keyId');
     this.defaults = this.configProvider.getDefaults();
     this.tc = this.isShared ? this.defaults.wallet.totalCopayers : 1;
     this.copayers = _.range(2, this.defaults.limits.totalCopayers + 1);
     this.derivationPathByDefault =
       this.coin == 'bch'
-        ? this.derivationPathHelperProvider.defaultBCH
+        ? this.isShared
+          ? this.derivationPathHelperProvider.defaultMultisigBCH
+          : this.derivationPathHelperProvider.defaultBCH
+        : this.isShared
+        ? this.derivationPathHelperProvider.defaultMultisigBTC
         : this.derivationPathHelperProvider.defaultBTC;
     this.derivationPathForTestnet = this.derivationPathHelperProvider.defaultTestnet;
     this.showAdvOpts = false;
@@ -109,6 +115,7 @@ export class CreateWalletPage implements OnInit {
 
     this.setTotalCopayers(this.tc);
     this.updateRCSelect(this.tc);
+    this.updateSeedSourceSelect();
   }
 
   ngOnInit() {
@@ -119,12 +126,9 @@ export class CreateWalletPage implements OnInit {
 
   public setTotalCopayers(n: number): void {
     this.createForm.controls['totalCopayers'].setValue(n);
-    this.updateRCSelect(n);
-    this.updateSeedSourceSelect();
   }
 
   private updateRCSelect(n: number): void {
-    this.createForm.controls['totalCopayers'].setValue(n);
     const maxReq = this.COPAYER_PAIR_LIMITS[n];
     this.signatures = _.range(1, maxReq + 1);
     this.createForm.controls['requiredCopayers'].setValue(
@@ -174,6 +178,7 @@ export class CreateWalletPage implements OnInit {
 
   public setOptsAndCreate(): void {
     const opts: Partial<WalletOptions> = {
+      keyId: this.keyId,
       name: this.createForm.value.walletName,
       m: this.createForm.value.requiredCopayers,
       n: this.createForm.value.totalCopayers,
@@ -261,16 +266,19 @@ export class CreateWalletPage implements OnInit {
 
   private create(opts): void {
     this.onGoingProcessProvider.set('creatingWallet');
+    const addingNewWallet = this.keyId ? true : false;
     this.profileProvider
-      .createNewSeedWallet(opts)
+      .createWallet(addingNewWallet, opts)
       .then(wallet => {
         this.onGoingProcessProvider.clear();
         this.walletProvider.updateRemotePreferences(wallet);
         this.pushNotificationsProvider.updateSubscription(wallet);
         if (this.createForm.value.selectedSeed == 'set') {
-          this.profileProvider.setBackupFlag(wallet.credentials.walletId);
+          this.profileProvider.setBackupGroupFlag(wallet.credentials.keyId);
+          this.profileProvider.setWalletBackup(wallet.credentials.walletId);
         }
         this.navCtrl.popToRoot().then(() => {
+          this.events.publish('Local/WalletListChange');
           setTimeout(() => {
             this.events.publish('OpenWallet', wallet);
           }, 1000);

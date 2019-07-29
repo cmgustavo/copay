@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { StatusBar } from '@ionic-native/status-bar';
 import { TranslateService } from '@ngx-translate/core';
 import { Events, NavController, NavParams } from 'ionic-angular';
 import * as _ from 'lodash';
@@ -10,13 +11,13 @@ import { ConfigProvider } from '../../providers/config/config';
 import { ExternalLinkProvider } from '../../providers/external-link/external-link';
 import { FilterProvider } from '../../providers/filter/filter';
 import { OnGoingProcessProvider } from '../../providers/on-going-process/on-going-process';
+import { PlatformProvider } from '../../providers/platform/platform';
 import { PopupProvider } from '../../providers/popup/popup';
 import { ProfileProvider } from '../../providers/profile/profile';
 import { RateProvider } from '../../providers/rate/rate';
 import { TxConfirmNotificationProvider } from '../../providers/tx-confirm-notification/tx-confirm-notification';
 import { TxFormatProvider } from '../../providers/tx-format/tx-format';
 import { WalletProvider } from '../../providers/wallet/wallet';
-import { WalletTabsProvider } from '../wallet-tabs/wallet-tabs.provider';
 
 @Component({
   selector: 'page-tx-details',
@@ -30,7 +31,6 @@ export class TxDetailsPage {
   public wallet;
   public btx;
   public actionList;
-  public insideWallet: boolean;
   public isShared: boolean;
   public title: string;
   public txNotification;
@@ -54,11 +54,24 @@ export class TxDetailsPage {
     private txConfirmNotificationProvider: TxConfirmNotificationProvider,
     private txFormatProvider: TxFormatProvider,
     private walletProvider: WalletProvider,
-    private walletTabsProvider: WalletTabsProvider,
     private translate: TranslateService,
     private filter: FilterProvider,
-    private rateProvider: RateProvider
+    private rateProvider: RateProvider,
+    private platformProvider: PlatformProvider,
+    private statusBar: StatusBar
   ) {}
+
+  ionViewWillEnter() {
+    if (this.platformProvider.isCordova) {
+      this.statusBar.styleDefault();
+    }
+  }
+
+  ionViewWillLeave() {
+    if (this.platformProvider.isCordova) {
+      this.statusBar.styleBlackOpaque();
+    }
+  }
 
   ionViewDidLoad() {
     this.config = this.configProvider.get();
@@ -66,7 +79,6 @@ export class TxDetailsPage {
     this.txId = this.navParams.data.txid;
     this.title = this.translate.instant('Transaction');
     this.wallet = this.profileProvider.getWallet(this.navParams.data.walletId);
-    this.insideWallet = !!this.walletTabsProvider.getTabNav();
     this.color = this.wallet.color;
     this.copayerId = this.wallet.credentials.copayerId;
     this.isShared = this.wallet.credentials.n > 1;

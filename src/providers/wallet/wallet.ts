@@ -11,6 +11,7 @@ import { BwcProvider } from '../bwc/bwc';
 import { ConfigProvider } from '../config/config';
 import { FeeProvider } from '../fee/fee';
 import { FilterProvider } from '../filter/filter';
+import { KeyProvider } from '../key/key';
 import { LanguageProvider } from '../language/language';
 import { Logger } from '../logger/logger';
 import { OnGoingProcessProvider } from '../on-going-process/on-going-process';
@@ -33,6 +34,7 @@ export enum Coin {
 }
 
 export interface WalletOptions {
+  keyId: any;
   name: any;
   m: any;
   n: any;
@@ -113,7 +115,8 @@ export class WalletProvider {
     private events: Events,
     private feeProvider: FeeProvider,
     private translate: TranslateService,
-    private addressProvider: AddressProvider
+    private addressProvider: AddressProvider,
+    private keyProvider: KeyProvider
   ) {
     this.logger.debug('WalletProvider initialized');
     this.isPopupOpen = false;
@@ -208,7 +211,6 @@ export class WalletProvider {
           wallet.coin,
           cache.totalBalanceSat
         );
-
         cache.lockedBalanceStr = this.txFormatProvider.formatAmountStr(
           wallet.coin,
           cache.lockedBalanceSat
@@ -232,6 +234,11 @@ export class WalletProvider {
         this.rateProvider
           .whenRatesAvailable(wallet.coin)
           .then(() => {
+            const availableBalanceAlternative = this.rateProvider.toFiat(
+              cache.availableBalanceSat,
+              cache.alternativeIsoCode,
+              wallet.coin
+            );
             const totalBalanceAlternative = this.rateProvider.toFiat(
               cache.totalBalanceSat,
               cache.alternativeIsoCode,
@@ -258,6 +265,9 @@ export class WalletProvider {
               wallet.coin
             );
 
+            cache.availableBalanceAlternative = this.filter.formatFiatAmount(
+              availableBalanceAlternative
+            );
             cache.totalBalanceAlternative = this.filter.formatFiatAmount(
               totalBalanceAlternative
             );
@@ -1053,12 +1063,6 @@ export class WalletProvider {
     });
   }
 
-  public isEncrypted(wallet): boolean {
-    if (_.isEmpty(wallet)) return undefined;
-    const isEncrypted = wallet.isPrivKeyEncrypted();
-    return isEncrypted;
-  }
-
   public createTx(
     wallet,
     txp: Partial<TransactionProposal>
@@ -1100,8 +1104,17 @@ export class WalletProvider {
     return new Promise((resolve, reject) => {
       if (!wallet || !txp) return reject('MISSING_PARAMETER');
 
+      const rootPath = wallet.getRootPath();
+
+      const signatures = this.keyProvider.sign(
+        wallet.credentials.keyId,
+        rootPath,
+        txp,
+        password
+      );
+
       try {
-        wallet.signTxProposal(txp, password, (err, signedTxp) => {
+        wallet.pushSignatures(txp, signatures, (err, signedTxp) => {
           if (err) {
             this.logger.error('Transaction signed err: ', err);
             return reject(err);
@@ -1109,7 +1122,7 @@ export class WalletProvider {
           return resolve(signedTxp);
         });
       } catch (e) {
-        this.logger.error('Error at signTxProposal:', e);
+        this.logger.error('Error at pushSignatures:', e);
         return reject(e);
       }
     });
@@ -1324,126 +1337,37 @@ export class WalletProvider {
           if (err || !resp || !resp.length)
             return reject(err ? err : 'No UTXOs');
 
-          this.getMinFee(wallet, resp.length).then(fee => {
-            const minFee = fee;
-            const balance = _.sumBy(resp, 'satoshis');
+          this.getMinFee(wallet, resp.length)
+            .then(fee => {
+              const minFee = fee;
+              const balance = _.sumBy(resp, 'satoshis');
 
-            // for 2 outputs
-            this.getLowAmount(wallet).then(fee => {
-              const lowAmount = fee;
-              const lowUtxos = _.filter(resp, x => {
-                return x.satoshis < lowAmount;
-              });
+              // for 2 outputs
+              this.getLowAmount(wallet)
+                .then(fee => {
+                  const lowAmount = fee;
+                  const lowUtxos = _.filter(resp, x => {
+                    return x.satoshis < lowAmount;
+                  });
 
-              const totalLow = _.sumBy(lowUtxos, 'satoshis');
-              return resolve({
-                allUtxos: resp || [],
-                lowUtxos: lowUtxos || [],
-                totalLow,
-                warning: minFee / balance > this.TOTAL_LOW_WARNING_RATIO,
-                minFee
-              });
-            });
-          });
-        }
-      );
-    });
-  }
-
-  // An alert dialog
-  private askPassword(warnMsg: string, title: string): Promise<any> {
-    return new Promise(resolve => {
-      const opts = {
-        type: 'password',
-        useDanger: true
-      };
-      this.popupProvider.ionicPrompt(title, warnMsg, opts).then(res => {
-        return resolve(res);
-      });
-    });
-  }
-
-  public encrypt(walletsArray: any[]): Promise<any> {
-    return new Promise((resolve, reject) => {
-      let title = this.translate.instant('Enter a new encrypt password');
-      const warnMsg = this.translate.instant(
-        'Your wallet key will be encrypted. The encrypt password cannot be recovered. Be sure to write it down.'
-      );
-      this.askPassword(warnMsg, title)
-        .then((password: string) => {
-          if (_.isNull(password)) {
-            return reject();
-          }
-          if (password == '') {
-            return reject(this.translate.instant('No password'));
-          }
-          title = this.translate.instant('Confirm your new encrypt password');
-          this.askPassword(warnMsg, title)
-            .then((password2: string) => {
-              if (_.isNull(password2)) {
-                return reject();
-              }
-              if (password != password2)
-                return reject(this.translate.instant('Password mismatch'));
-              walletsArray.forEach(wallet => {
-                wallet.encryptPrivateKey(password);
-              });
-              return resolve();
+                  const totalLow = _.sumBy(lowUtxos, 'satoshis');
+                  return resolve({
+                    allUtxos: resp || [],
+                    lowUtxos: lowUtxos || [],
+                    totalLow,
+                    warning: minFee / balance > this.TOTAL_LOW_WARNING_RATIO,
+                    minFee
+                  });
+                })
+                .catch(err => {
+                  return reject(err);
+                });
             })
             .catch(err => {
               return reject(err);
             });
-        })
-        .catch(err => {
-          return reject(err);
-        });
-    });
-  }
-
-  public decrypt(walletsArray: any[]): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.askPassword(
-        null,
-        this.translate.instant('Enter encrypt password')
-      ).then((password: string) => {
-        if (_.isNull(password)) {
-          return reject();
         }
-        if (password == '') {
-          return reject(this.translate.instant('No password'));
-        }
-        try {
-          walletsArray.forEach(wallet => {
-            this.logger.info(
-              'Disabling private key encryption for' + wallet.name
-            );
-            wallet.decryptPrivateKey(password);
-          });
-        } catch (e) {
-          return reject(this.translate.instant('Wrong password'));
-        }
-        return resolve();
-      });
-    });
-  }
-
-  public handleEncryptedWallet(wallet): Promise<any> {
-    return new Promise((resolve, reject) => {
-      if (!this.isEncrypted(wallet)) return resolve();
-      this.askPassword(
-        null,
-        this.translate.instant('Enter encrypt password')
-      ).then((password: string) => {
-        if (_.isNull(password)) {
-          return reject(new Error('PASSWORD_CANCELLED'));
-        }
-        if (password == '') {
-          return reject(new Error('NO_PASSWORD'));
-        }
-        if (!wallet.checkPassword(password))
-          return reject(new Error('WRONG_PASSWORD'));
-        return resolve(password);
-      });
+      );
     });
   }
 
@@ -1484,7 +1408,8 @@ export class WalletProvider {
       this.touchidProvider
         .checkWallet(wallet)
         .then(() => {
-          this.handleEncryptedWallet(wallet)
+          this.keyProvider
+            .handleEncryptedWallet(wallet.credentials.keyId)
             .then((password: string) => {
               return resolve(password);
             })
@@ -1606,7 +1531,19 @@ export class WalletProvider {
 
   public getEncodedWalletInfo(wallet, password?: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      const derivationPath = wallet.credentials.getBaseAddressDerivationPath();
+      if (!wallet.credentials.keyId) {
+        return resolve();
+      }
+
+      const derivationPath = this.keyProvider.getBaseAddressDerivationPath(
+        wallet.credentials.keyId,
+        {
+          account: wallet.account,
+          coin: wallet.coin,
+          n: wallet.n,
+          network: wallet.network
+        }
+      );
       const encodingType = {
         mnemonic: 1,
         xpriv: 2,
@@ -1614,15 +1551,14 @@ export class WalletProvider {
       };
       let info: any = {};
 
-      // not supported yet
-      if (wallet.credentials.derivationStrategy != 'BIP44' || !wallet.canSign())
+      const keys = this.getKeysWithPassword(wallet, password);
+
+      if (!keys || (!keys.mnemonic && !keys.xPrivKey))
         return reject(
           this.translate.instant(
             'Exporting via QR not supported for this wallet'
           )
         );
-
-      const keys = this.getKeysWithPassword(wallet, password);
 
       if (keys.mnemonic) {
         info = {
@@ -1636,6 +1572,10 @@ export class WalletProvider {
         };
       }
 
+      const mnemonicHasPassphrase = this.keyProvider.mnemonicHasPassphrase(
+        wallet.credentials.keyId
+      );
+
       return resolve(
         info.type +
           '|' +
@@ -1645,7 +1585,7 @@ export class WalletProvider {
           '|' +
           derivationPath +
           '|' +
-          wallet.credentials.mnemonicHasPassphrase +
+          mnemonicHasPassphrase +
           '|' +
           wallet.coin
       );
@@ -1654,7 +1594,7 @@ export class WalletProvider {
 
   public getKeysWithPassword(wallet, password: string) {
     try {
-      return wallet.getKeys(password);
+      return this.keyProvider.get(wallet.credentials.keyId, password);
     } catch (e) {
       this.logger.error(e);
     }
@@ -1680,7 +1620,7 @@ export class WalletProvider {
         .then((password: string) => {
           let keys;
           try {
-            keys = wallet.getKeys(password);
+            keys = this.getKeysWithPassword(wallet, password);
           } catch (e) {
             return reject(e);
           }
@@ -1698,7 +1638,7 @@ export class WalletProvider {
         .then((password: string) => {
           let keys;
           try {
-            keys = wallet.getKeys(password);
+            keys = this.getKeysWithPassword(wallet, password);
           } catch (e) {
             return reject(e);
           }
@@ -1729,16 +1669,16 @@ export class WalletProvider {
     }
   }
 
-  public copyCopayers(wallet, newWallet): Promise<any> {
+  public copyCopayers(wallet: any, newWallet: any): Promise<any> {
     return new Promise((resolve, reject) => {
-      const walletPrivKey = this.bwcProvider
+      let walletPrivKey = this.bwcProvider
         .getBitcore()
         .PrivateKey.fromString(wallet.credentials.walletPrivKey);
       let copayer = 1;
       let i = 0;
 
       _.each(wallet.credentials.publicKeyRing, item => {
-        const name = item.copayerName || 'copayer ' + copayer++;
+        let name = item.copayerName || 'copayer ' + copayer++;
         newWallet._doJoinWallet(
           newWallet.credentials.walletId,
           walletPrivKey,
@@ -1748,7 +1688,7 @@ export class WalletProvider {
           {
             coin: newWallet.credentials.coin
           },
-          err => {
+          (err: any) => {
             // Ignore error is copayer already in wallet
             if (err && !(err instanceof this.errors.COPAYER_IN_WALLET))
               return reject(err);

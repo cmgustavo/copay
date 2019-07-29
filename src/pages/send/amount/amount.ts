@@ -4,6 +4,7 @@ import {
   HostListener,
   NgZone
 } from '@angular/core';
+import { StatusBar } from '@ionic-native/status-bar';
 import {
   Events,
   NavController,
@@ -23,6 +24,7 @@ import { TxFormatProvider } from '../../../providers/tx-format/tx-format';
 
 // Pages
 import { ActionSheetProvider, GiftCardProvider } from '../../../providers';
+import { getActivationFee } from '../../../providers/gift-card/gift-card';
 import { CardConfig } from '../../../providers/gift-card/gift-card.types';
 import { ProfileProvider } from '../../../providers/profile/profile';
 import { Coin } from '../../../providers/wallet/wallet';
@@ -99,7 +101,8 @@ export class AmountPage extends WalletTabsChild {
     private changeDetectorRef: ChangeDetectorRef,
     walletTabsProvider: WalletTabsProvider,
     private events: Events,
-    private viewCtrl: ViewController
+    private viewCtrl: ViewController,
+    private statusBar: StatusBar
   ) {
     super(navCtrl, profileProvider, walletTabsProvider);
     this.zone = new NgZone({ enableLongStackTrace: false });
@@ -158,6 +161,9 @@ export class AmountPage extends WalletTabsChild {
   }
 
   ionViewWillEnter() {
+    if (this.platformProvider.isCordova && this.cardName) {
+      this.statusBar.styleBlackOpaque();
+    }
     this.disableHardwareKeyboard = false;
     this.expression = '';
     this.useSendMax = false;
@@ -169,6 +175,9 @@ export class AmountPage extends WalletTabsChild {
   }
 
   ionViewWillLeave() {
+    if (this.platformProvider.isCordova && this.cardName) {
+      this.statusBar.styleDefault();
+    }
     this._disableHardwareKeyboard();
   }
 
@@ -509,7 +518,7 @@ export class AmountPage extends WalletTabsChild {
       .present();
   }
 
-  public finish(): void {
+  public finish(skipActivationFeeAlert: boolean = false): void {
     let unit = this.availableUnits[this.unitIndex];
     let _amount = this.evaluate(this.format(this.expression));
     let coin = unit.id;
@@ -558,9 +567,31 @@ export class AmountPage extends WalletTabsChild {
       }
     }
     this.useSendMax = null;
+
+    if (this.cardName && !skipActivationFeeAlert) {
+      const activationFee = getActivationFee(data.amount, this.cardConfig);
+      if (activationFee) {
+        return this.alertActivationFeeIncluded(activationFee);
+      }
+    }
+
     this.useAsModal
       ? this.closeModal(data)
       : this.navCtrl.push(this.nextView, data);
+  }
+
+  private alertActivationFeeIncluded(fee) {
+    if (!fee) return;
+    const sheet = this.actionSheetProvider.createInfoSheet(
+      'activation-fee-included',
+      {
+        currency: this.cardConfig.currency,
+        displayName: this.cardConfig.displayName,
+        fee
+      }
+    );
+    sheet.present();
+    sheet.onDidDismiss(ok => ok && this.finish(true));
   }
 
   private updateUnitUI(): void {

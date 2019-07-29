@@ -1,0 +1,36 @@
+<wide-header-page title="{{'Add Wallet' | translate}}">
+  <div page-content>
+    <label-tip *ngIf="walletsGroups && walletsGroups[0]" type="info" class="no-arrowhead" type="info" margin-top>
+      <span label-tip-title translate>Select the Key for the New Wallet</span>
+      <div label-tip-body>
+        <span translate>By reusing a current key, your new wallet will share the recovery phrase, so you don't need to backup it again.</span>
+      </div>
+    </label-tip>
+
+    <ion-list class="settings-list bp-list">
+      <button ion-item *ngFor="let walletsGroup of walletsGroups" (click)="goToAddPage(walletsGroup[0].keyId)">
+        <ion-icon class="settings-icon" item-start>
+          <img src="assets/img/wallet-group.svg" width="24" />
+        </ion-icon>
+        <ion-label>
+          <div>{{walletsGroup[0].name}}</div>
+          <div class="subtitle ellipsis" *ngIf="walletsGroup.length > 1">
+            <span *ngFor="let wallet of walletsGroup; let i = index">
+              {{wallet.name}}
+              <span *ngIf="i < walletsGroup.length - 1">-</span>
+            </span>
+          </div>
+        </ion-label>
+      </button>
+
+      <button ion-item (click)="goToAddPage()" *ngIf="allowMultiplePrimaryWallets">
+        <ion-icon class="item-img" item-start>
+          <div class="icon-plus"></div>
+        </ion-icon>
+        <span translate>Create a new key</span>
+      </button>
+
+
+    </ion-list>
+  </div>
+</wide-header-page>

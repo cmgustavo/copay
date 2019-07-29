@@ -31,6 +31,7 @@ const Keys = {
   GIFT_CARD_USER_INFO: 'amazonUserInfo', // keeps legacy key for backwards compatibility
   APP_IDENTITY: network => 'appIdentity-' + network,
   BACKUP: walletId => 'backup-' + walletId,
+  BACKUP_WALLET_GROUP: keyId => 'walletGroupBackup-' + keyId,
   BALANCE_CACHE: cardId => 'balanceCache-' + cardId,
   BITPAY_ACCOUNTS_V2: network => 'bitpayAccounts-v2-' + network,
   CLEAN_AND_SCAN_ADDRESSES: 'CleanAndScanAddresses',
@@ -53,17 +54,18 @@ const Keys = {
   },
   HIDE_GIFT_CARD_DISCOUNT_ITEM: 'hideGiftCardDiscountItem',
   HIDE_BALANCE: walletId => 'hideBalance-' + walletId,
+  HIDE_WALLET: walletId => 'hideWallet-' + walletId,
+  KEYS: 'keys',
   LAST_ADDRESS: walletId => 'lastAddress-' + walletId,
   LAST_CURRENCY_USED: 'lastCurrencyUsed',
-  ONBOARDING_COMPLETED: 'onboardingCompleted',
   PROFILE: 'profile',
+  PROFILE_OLD: 'profileOld',
   REMOTE_PREF_STORED: 'remotePrefStored',
   TX_CONFIRM_NOTIF: txid => 'txConfirmNotif-' + txid,
   TX_HISTORY: walletId => 'txsHistory-' + walletId,
   ORDER_WALLET: walletId => 'order-' + walletId,
   SERVER_MESSAGE_DISMISSED: messageId => 'serverMessageDismissed-' + messageId,
-  SHAPESHIFT_TOKEN: network => 'shapeshiftToken-' + network,
-  PRICE_CHART: 'priceChart'
+  SHAPESHIFT_TOKEN: network => 'shapeshiftToken-' + network
 };
 
 interface Storage {
@@ -91,6 +93,18 @@ export class PersistenceProvider {
       : new LocalStorage(this.logger);
   }
 
+  storeProfileLegacy(profileOld): Promise<void> {
+    return this.storage.set(Keys.PROFILE_OLD, profileOld);
+  }
+
+  getProfileLegacy(): Promise<void> {
+    return this.storage.get(Keys.PROFILE_OLD);
+  }
+
+  removeProfileLegacy(): Promise<void> {
+    return this.storage.remove(Keys.PROFILE_OLD);
+  }
+
   storeNewProfile(profile): Promise<void> {
     return this.storage.create(Keys.PROFILE, profile);
   }
@@ -105,6 +119,14 @@ export class PersistenceProvider {
         resolve(profile);
       });
     });
+  }
+
+  setKeys(keys: any[]) {
+    return this.storage.set(Keys.KEYS, keys);
+  }
+
+  getKeys() {
+    return this.storage.get(Keys.KEYS);
   }
 
   setFeedbackInfo(feedbackValues: FeedbackValues) {
@@ -147,6 +169,19 @@ export class PersistenceProvider {
     return this.storage.remove(Keys.BACKUP(walletId));
   }
 
+  setBackupGroupFlag(keyId: string, timestamp?) {
+    timestamp = timestamp || Date.now();
+    return this.storage.set(Keys.BACKUP_WALLET_GROUP(keyId), timestamp);
+  }
+
+  getBackupGroupFlag(keyId: string) {
+    return this.storage.get(Keys.BACKUP_WALLET_GROUP(keyId));
+  }
+
+  clearBackupGroupFlag(keyId: string) {
+    return this.storage.remove(Keys.BACKUP_WALLET_GROUP(keyId));
+  }
+
   setCleanAndScanAddresses(walletId: string) {
     return this.storage.set(Keys.CLEAN_AND_SCAN_ADDRESSES, walletId);
   }
@@ -179,21 +214,21 @@ export class PersistenceProvider {
     return this.storage.get(Keys.HIDE_BALANCE(walletId));
   }
 
-  setDisclaimerAccepted() {
-    return this.storage.set(Keys.AGREE_DISCLAIMER, true);
+  setHideWalletFlag(walletId: string, val) {
+    return this.storage.set(Keys.HIDE_WALLET(walletId), val);
   }
 
-  setOnboardingCompleted() {
-    return this.storage.set(Keys.ONBOARDING_COMPLETED, true);
+  getHideWalletFlag(walletId: string) {
+    return this.storage.get(Keys.HIDE_WALLET(walletId));
+  }
+
+  setDisclaimerAccepted() {
+    return this.storage.set(Keys.AGREE_DISCLAIMER, true);
   }
 
   // for compatibility
   getCopayDisclaimerFlag() {
     return this.storage.get(Keys.AGREE_DISCLAIMER);
-  }
-
-  getCopayOnboardingFlag() {
-    return this.storage.get(Keys.ONBOARDING_COMPLETED);
   }
 
   setRemotePrefsStoredFlag() {
@@ -319,6 +354,10 @@ export class PersistenceProvider {
     this.removeTxHistory(walletId);
     this.clearBackupFlag(walletId);
     this.removeWalletOrder(walletId);
+  }
+
+  removeAllWalletGroupData(keyId: string) {
+    this.clearBackupGroupFlag(keyId);
   }
 
   getActiveGiftCards(network: Network) {
@@ -566,16 +605,17 @@ export class PersistenceProvider {
     return this.storage.remove('newDesignSlides');
   }
 
-  setPriceChartFlag(value: string) {
-    return this.storage.set('priceChart', value);
+  setHiddenFeaturesFlag(value: string) {
+    this.logger.debug('Hidden features: ', value);
+    return this.storage.set('hiddenFeatures', value);
   }
 
-  getPriceChartFlag() {
-    return this.storage.get('priceChart');
+  getHiddenFeaturesFlag() {
+    return this.storage.get('hiddenFeatures');
   }
 
-  removePriceChartFlag() {
-    return this.storage.remove('priceChart');
+  removeHiddenFeaturesFlag() {
+    return this.storage.remove('hiddenFeatures');
   }
 }
 

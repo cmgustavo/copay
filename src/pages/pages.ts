@@ -1,4 +1,5 @@
 /* Pages */
+import { AddWalletPage } from '../pages/add-wallet/add-wallet';
 import { AddPage } from '../pages/add/add';
 import { CopayersPage } from '../pages/add/copayers/copayers';
 import { CreateWalletPage } from '../pages/add/create-wallet/create-wallet';
@@ -79,17 +80,22 @@ import { LockPage } from '../pages/settings/lock/lock';
 import { NotificationsPage } from '../pages/settings/notifications/notifications';
 import { SharePage } from '../pages/settings/share/share';
 
+/* Wallet Group Settings */
+import { WalletGroupDeletePage } from '../pages/settings/wallet-group-settings/wallet-group-delete/wallet-group-delete';
+import { WalletGroupExtendedPrivateKeyPage } from '../pages/settings/wallet-group-settings/wallet-group-extended-private-key/wallet-group-extended-private-key';
+import { WalletGroupSettingsPage } from '../pages/settings/wallet-group-settings/wallet-group-settings';
+
 /* Wallet Settings */
-import { WalletColorPage } from '../pages/settings/wallet-settings/wallet-color/wallet-color';
 import { WalletNamePage } from '../pages/settings/wallet-settings/wallet-name/wallet-name';
 import { WalletSettingsPage } from '../pages/settings/wallet-settings/wallet-settings';
+import { WalletMnemonicRecoverPage } from './settings/advanced/wallet-recover-page/wallet-mnemonic-recover-page/wallet-mnemonic-recover-page';
+import { WalletRecoverPage } from './settings/advanced/wallet-recover-page/wallet-recover-page';
 
 /* Wallet Advanced Settings */
 import { AllAddressesPage } from '../pages/settings/wallet-settings/wallet-settings-advanced/wallet-addresses/all-addresses/all-addresses';
 import { WalletAddressesPage } from '../pages/settings/wallet-settings/wallet-settings-advanced/wallet-addresses/wallet-addresses';
-import { WalletDeletePage } from '../pages/settings/wallet-settings/wallet-settings-advanced/wallet-delete/wallet-delete';
+import { WalletDuplicatePage } from '../pages/settings/wallet-settings/wallet-settings-advanced/wallet-duplicate/wallet-duplicate';
 import { WalletExportPage } from '../pages/settings/wallet-settings/wallet-settings-advanced/wallet-export/wallet-export';
-import { WalletExtendedPrivateKeyPage } from '../pages/settings/wallet-settings/wallet-settings-advanced/wallet-information/wallet-extended-private-key/wallet-extended-private-key';
 import { WalletInformationPage } from '../pages/settings/wallet-settings/wallet-settings-advanced/wallet-information/wallet-information';
 import { WalletServiceUrlPage } from '../pages/settings/wallet-settings/wallet-settings-advanced/wallet-service-url/wallet-service-url';
 import { WalletTransactionHistoryPage } from '../pages/settings/wallet-settings/wallet-settings-advanced/wallet-transaction-history/wallet-transaction-history';
@@ -112,6 +118,7 @@ import { GIFT_CARD_PAGES } from './integrations/gift-cards/gift-cards';
 
 export const PAGES = [
   AddPage,
+  AddWalletPage,
   AmountPage,
   AddressbookPage,
   AddressbookAddPage,
@@ -183,15 +190,18 @@ export const PAGES = [
   TxpPage,
   WalletSettingsPage,
   WalletNamePage,
-  WalletColorPage,
   WalletInformationPage,
   WalletAddressesPage,
   WalletExportPage,
   WalletServiceUrlPage,
   WalletTransactionHistoryPage,
-  WalletDeletePage,
-  WalletExtendedPrivateKeyPage,
+  WalletDuplicatePage,
+  WalletGroupExtendedPrivateKeyPage,
+  WalletGroupDeletePage,
+  WalletGroupSettingsPage,
   WalletDetailsPage,
+  WalletRecoverPage,
+  WalletMnemonicRecoverPage,
   WalletTabsChild,
   WalletTabsPage,
   WalletBalancePage,

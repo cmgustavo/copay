@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { StatusBar } from '@ionic-native/status-bar';
 import { TranslateService } from '@ngx-translate/core';
 import {
   App,
@@ -25,6 +26,7 @@ import { ClipboardProvider } from '../../../../providers/clipboard/clipboard';
 import { ConfigProvider } from '../../../../providers/config/config';
 import { ExternalLinkProvider } from '../../../../providers/external-link/external-link';
 import { InvoiceProvider } from '../../../../providers/invoice/invoice';
+import { KeyProvider } from '../../../../providers/key/key';
 import { OnGoingProcessProvider } from '../../../../providers/on-going-process/on-going-process';
 import { PayproProvider } from '../../../../providers/paypro/paypro';
 import { PlatformProvider } from '../../../../providers/platform/platform';
@@ -99,7 +101,9 @@ export class ConfirmInvoicePage extends ConfirmPage {
     walletTabsProvider: WalletTabsProvider,
     public clipboardProvider: ClipboardProvider,
     events: Events,
-    appProvider: AppProvider
+    appProvider: AppProvider,
+    keyProvider: KeyProvider,
+    statusBar: StatusBar
   ) {
     super(
       app,
@@ -126,7 +130,9 @@ export class ConfirmInvoicePage extends ConfirmPage {
       walletTabsProvider,
       clipboardProvider,
       events,
-      appProvider
+      appProvider,
+      keyProvider,
+      statusBar
     );
     this.hideSlideButton = false;
     this.invoicePaid = false;

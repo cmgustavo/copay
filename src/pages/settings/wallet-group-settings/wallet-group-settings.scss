@@ -1,0 +1,23 @@
+page-wallet-group-settings {
+  .item-text {
+    font-size: 12.5px;
+  }
+
+  ion-item-divider.item.item-divider {
+    padding-left: 16px;
+  }
+
+  .settings-color-block {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    float: left;
+    margin: 1rem;
+    background-color: color($colors, primary);
+  }
+
+  .item-without-title {
+    margin-top: 0;
+  }
+}
