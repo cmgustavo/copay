@@ -1,12 +1,6 @@
 package.json
 package-lock.json
-package-template.json
-google-services.json
-app-template/bitpay/google-services.json
-app-template/copay/google-services.json
 .sourcemaps/
-coverage/
 platforms/
 plugins/
 www/
-src/assets/*.json
