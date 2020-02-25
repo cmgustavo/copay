@@ -143,6 +143,7 @@ export class HomePage {
 
   async ngOnInit() {
     await this.tabProvider.prefetchCards();
+    this.tabProvider.prefetchWallets();
   }
 
   async ionViewWillEnter() {
