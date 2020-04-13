@@ -103,31 +103,18 @@ export class ExpandableHeaderComponent {
   }
 
   private transformContent(transformations: number[]): void {
-    const [opacity, scale] = transformations;
-    const transformStr = `scale(${scale}, ${scale})`;
+    const [opacity] = transformations;
 
     this.renderer.setElementStyle(
       this.primaryContent.element.nativeElement,
       'opacity',
       `${opacity}`
     );
-    this.primaryContent &&
-      this.renderer.setElementStyle(
-        this.primaryContent.element.nativeElement,
-        'transform',
-        transformStr
-      );
     this.renderer.setElementStyle(
       this.footerContent.element.nativeElement,
       'opacity',
       `${opacity}`
     );
-    this.footerContent &&
-      this.renderer.setElementStyle(
-        this.footerContent.element.nativeElement,
-        'transform',
-        transformStr
-      );
   }
 }
 
